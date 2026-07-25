@@ -12,9 +12,10 @@ public sealed class InfrastructureTests
     [Fact]
     public async Task SeedDataCreatesExpectedRecordsAndIsIdempotent()
     {
+        var databaseName = Guid.NewGuid().ToString();
         await using var services = new ServiceCollection()
             .AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase(Guid.NewGuid().ToString()))
+                options.UseInMemoryDatabase(databaseName))
             .BuildServiceProvider();
 
         await SeedData.InitializeAsync(services);
