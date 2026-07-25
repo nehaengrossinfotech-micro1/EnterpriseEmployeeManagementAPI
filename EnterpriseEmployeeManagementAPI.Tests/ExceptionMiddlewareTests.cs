@@ -9,6 +9,11 @@ namespace EnterpriseEmployeeManagementAPI.Tests;
 
 public sealed class ExceptionMiddlewareTests
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
     [Theory]
     [InlineData(typeof(KeyNotFoundException), StatusCodes.Status404NotFound)]
     [InlineData(typeof(InvalidOperationException), StatusCodes.Status409Conflict)]
@@ -33,7 +38,7 @@ public sealed class ExceptionMiddlewareTests
         context.Response.Body.Position = 0;
         var problem = await JsonSerializer.DeserializeAsync<ProblemDetails>(
             context.Response.Body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            SerializerOptions);
         problem.Should().NotBeNull();
         problem!.Status.Should().Be(expectedStatusCode);
         problem.Extensions.Should().ContainKey("traceId");
