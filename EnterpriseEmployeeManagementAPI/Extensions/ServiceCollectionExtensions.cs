@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
             ?? throw new InvalidOperationException(
                 "Connection string 'DefaultConnection' is required.");
         var jwtSettings = configuration
-            .GetRequiredSection(JwtSettings.SectionName)
+            .GetSection(JwtSettings.SectionName)
             .Get<JwtSettings>()
             ?? throw new InvalidOperationException("JWT configuration is required.");
 
