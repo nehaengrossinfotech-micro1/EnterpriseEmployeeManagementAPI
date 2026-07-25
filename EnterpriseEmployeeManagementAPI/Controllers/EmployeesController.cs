@@ -44,6 +44,8 @@ public sealed class EmployeesController(
     [HttpPost]
     [ProducesResponseType<EmployeeDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<EmployeeDto>> Create(
         CreateEmployeeRequest request,
         CancellationToken cancellationToken)
@@ -66,6 +68,7 @@ public sealed class EmployeesController(
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update(
         Guid id,
         UpdateEmployeeRequest request,
