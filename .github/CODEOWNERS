@@ -1,0 +1,16 @@
+# API reviewers
+/EnterpriseEmployeeManagementAPI/Controllers/ @nehaengrossinfotech-micro1
+
+# Backend reviewers
+/EnterpriseEmployeeManagementAPI/Repositories/ @nehaengrossinfotech-micro1
+/EnterpriseEmployeeManagementAPI/Data/ @nehaengrossinfotech-micro1
+
+# DevOps reviewers
+/.github/workflows/ @nehaengrossinfotech-micro1
+
+# Solution and configuration owners
+/*.sln @nehaengrossinfotech-micro1
+/Directory.Build.props @nehaengrossinfotech-micro1
+/**/*.csproj @nehaengrossinfotech-micro1
+/EnterpriseEmployeeManagementAPI/appsettings*.json @nehaengrossinfotech-micro1
+/EnterpriseEmployeeManagementAPI/Configuration/ @nehaengrossinfotech-micro1
