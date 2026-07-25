@@ -4,7 +4,7 @@ Describe the purpose and user impact of this change.
 
 ## Changes
 
-- 
+-
 
 ## Validation
 
