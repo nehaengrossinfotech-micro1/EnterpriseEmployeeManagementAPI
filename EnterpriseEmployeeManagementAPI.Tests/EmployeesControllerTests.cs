@@ -94,6 +94,95 @@ public sealed class EmployeesControllerTests
         service.VerifyAll();
     }
 
+    [Fact]
+    public async Task GetByIdReturnsEmployee()
+    {
+        var employee = CreateEmployeeDto();
+        var service = new Mock<IEmployeeService>(MockBehavior.Strict);
+        service
+            .Setup(item => item.GetByIdAsync(employee.Id, CancellationToken.None))
+            .ReturnsAsync(employee);
+        var controller = CreateController(service.Object);
+
+        var result = await controller.GetById(employee.Id, CancellationToken.None);
+
+        result.Result.Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().Be(employee);
+        service.VerifyAll();
+    }
+
+    [Fact]
+    public async Task SearchReturnsMatches()
+    {
+        var employee = CreateEmployeeDto();
+        var service = new Mock<IEmployeeService>(MockBehavior.Strict);
+        service
+            .Setup(item => item.SearchAsync("Morgan", CancellationToken.None))
+            .ReturnsAsync([employee]);
+        var controller = CreateController(service.Object);
+
+        var result = await controller.Search("Morgan", CancellationToken.None);
+
+        result.Result.Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().BeEquivalentTo(new[] { employee });
+        service.VerifyAll();
+    }
+
+    [Fact]
+    public async Task UpdateReturnsNoContentForValidRequest()
+    {
+        var employee = CreateEmployeeDto();
+        var request = new UpdateEmployeeRequest(
+            employee.EmployeeNumber,
+            employee.FirstName,
+            employee.LastName,
+            employee.Email,
+            employee.JobTitle,
+            employee.DepartmentId,
+            employee.HireDate,
+            employee.IsActive);
+        var service = new Mock<IEmployeeService>(MockBehavior.Strict);
+        service
+            .Setup(item => item.UpdateAsync(
+                employee.Id,
+                request,
+                CancellationToken.None))
+            .Returns(Task.CompletedTask);
+        var controller = CreateController(service.Object);
+
+        var result = await controller.Update(
+            employee.Id,
+            request,
+            CancellationToken.None);
+
+        result.Should().BeOfType<NoContentResult>();
+        service.VerifyAll();
+    }
+
+    [Fact]
+    public async Task UpdateReturnsValidationProblemForInvalidRequest()
+    {
+        var request = new UpdateEmployeeRequest(
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            "not-an-email",
+            string.Empty,
+            Guid.Empty,
+            DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+            true);
+        var service = new Mock<IEmployeeService>(MockBehavior.Strict);
+        var controller = CreateController(service.Object);
+
+        var result = await controller.Update(
+            Guid.NewGuid(),
+            request,
+            CancellationToken.None);
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        service.VerifyNoOtherCalls();
+    }
+
     private static EmployeesController CreateController(IEmployeeService service)
     {
         return new EmployeesController(
