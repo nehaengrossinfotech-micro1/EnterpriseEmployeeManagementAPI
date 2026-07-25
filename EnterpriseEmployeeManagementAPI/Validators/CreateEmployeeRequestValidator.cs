@@ -11,7 +11,8 @@ public sealed class CreateEmployeeRequestValidator
         RuleFor(request => request.EmployeeNumber)
             .NotEmpty()
             .MaximumLength(30)
-            .Matches("^[A-Za-z0-9-]+$");
+            .Matches("^[A-Za-z0-9-]+$")
+            .WithMessage("Employee number may contain only letters, numbers, and hyphens.");
         RuleFor(request => request.FirstName).NotEmpty().MaximumLength(100);
         RuleFor(request => request.LastName).NotEmpty().MaximumLength(100);
         RuleFor(request => request.Email).NotEmpty().EmailAddress().MaximumLength(256);
@@ -19,6 +20,7 @@ public sealed class CreateEmployeeRequestValidator
         RuleFor(request => request.DepartmentId).NotEmpty();
         RuleFor(request => request.HireDate)
             .NotEmpty()
-            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow));
+            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
+            .WithMessage("Hire date cannot be in the future.");
     }
 }
