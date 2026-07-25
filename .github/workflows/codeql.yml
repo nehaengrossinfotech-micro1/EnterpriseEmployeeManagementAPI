@@ -1,0 +1,88 @@
+name: CodeQL and dependency security
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: CodeQL analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: csharp
+          queries: security-extended
+
+      - name: Restore packages with critical vulnerability gate
+        run: >
+          dotnet restore EnterpriseEmployeeManagementAPI.sln
+          -p:NuGetAudit=true
+          -p:NuGetAuditMode=all
+          -p:WarningsAsErrors=NU1904
+
+      - name: Report vulnerable dependencies
+        run: >
+          dotnet list EnterpriseEmployeeManagementAPI.sln
+          package
+          --vulnerable
+          --include-transitive
+
+      - name: Build for analysis
+        run: dotnet build EnterpriseEmployeeManagementAPI.sln --configuration Release --no-restore
+
+      - name: Analyze and upload CodeQL results
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:csharp
+          output: sarif-results
+
+      - name: Fail on critical CodeQL findings
+        shell: bash
+        run: |
+          critical_count="$(
+            jq -s '
+              [
+                .[].runs[] as $run
+                | $run.results[] as $result
+                | $run.tool.driver.rules[]
+                | select(.id == $result.ruleId)
+                | select(((.properties["security-severity"] // "0") | tonumber) >= 9.0)
+              ]
+              | length
+            ' sarif-results/*.sarif
+          )"
+          echo "Critical CodeQL findings: ${critical_count}"
+          test "${critical_count}" -eq 0
+
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: critical

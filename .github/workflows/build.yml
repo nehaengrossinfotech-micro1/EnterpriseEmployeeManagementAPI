@@ -1,0 +1,46 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Restore, build, and publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore packages
+        run: dotnet restore EnterpriseEmployeeManagementAPI.sln
+
+      - name: Build solution
+        run: dotnet build EnterpriseEmployeeManagementAPI.sln --configuration Release --no-restore
+
+      - name: Publish API
+        run: >
+          dotnet publish
+          EnterpriseEmployeeManagementAPI/EnterpriseEmployeeManagementAPI.csproj
+          --configuration Release
+          --no-build
+          --output artifacts/api
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: enterprise-employee-management-api
+          path: artifacts/api
+          if-no-files-found: error
+          retention-days: 14

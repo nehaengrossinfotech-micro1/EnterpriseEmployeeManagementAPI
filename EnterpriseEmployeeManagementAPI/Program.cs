@@ -1,23 +1,25 @@
 using Asp.Versioning;
-using Microsoft.AspNetCore.Diagnostics;
+using EnterpriseEmployeeManagementAPI.Data;
+using EnterpriseEmployeeManagementAPI.Extensions;
+using EnterpriseEmployeeManagementAPI.Logging;
+using EnterpriseEmployeeManagementAPI.Middleware;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables(prefix: "EEMA_");
 
-builder.Logging.ClearProviders();
-builder.Logging.AddJsonConsole(options =>
-{
-    options.IncludeScopes = true;
-    options.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
-    options.UseUtcTimestamp = true;
-});
+builder.Host.UseSerilog((context, _, loggerConfiguration) =>
+    LoggingConfiguration.Configure(
+        loggerConfiguration,
+        context.Configuration,
+        context.HostingEnvironment));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddProblemDetails();
-builder.Services.AddHealthChecks();
+builder.Services.AddEmployeeModule(builder.Configuration);
 builder.Services
     .AddApiVersioning(options =>
     {
@@ -33,35 +35,9 @@ builder.Services
     });
 
 var app = builder.Build();
-var logUnhandledException = LoggerMessage.Define<string, string>(
-    LogLevel.Error,
-    new EventId(5000, "UnhandledException"),
-    "Unhandled exception while processing {Method} {Path}");
 
-app.UseExceptionHandler(exceptionHandler =>
-{
-    exceptionHandler.Run(async context =>
-    {
-        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-        var logger = context.RequestServices
-            .GetRequiredService<ILoggerFactory>()
-            .CreateLogger("GlobalExceptionHandler");
-
-        logUnhandledException(
-            logger,
-            context.Request.Method,
-            context.Request.Path.Value ?? "/",
-            exception);
-
-        await Results.Problem(
-            statusCode: StatusCodes.Status500InternalServerError,
-            title: "An unexpected error occurred.",
-            extensions: new Dictionary<string, object?>
-            {
-                ["traceId"] = context.TraceIdentifier,
-            }).ExecuteAsync(context);
-    });
-});
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())
 {
@@ -70,8 +46,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
+
+await SeedData.InitializeAsync(app.Services);
 
 app.Run();
 
