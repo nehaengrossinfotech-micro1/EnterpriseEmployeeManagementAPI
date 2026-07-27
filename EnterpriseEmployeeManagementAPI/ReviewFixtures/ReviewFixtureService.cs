@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace EnterpriseEmployeeManagementAPI.ReviewFixtures;
 
 /// <summary>
@@ -8,13 +6,6 @@ namespace EnterpriseEmployeeManagementAPI.ReviewFixtures;
 /// </summary>
 public sealed class ReviewFixtureService
 {
-    private readonly ILogger<ReviewFixtureService> _logger;
-
-    public ReviewFixtureService(ILogger<ReviewFixtureService> logger)
-    {
-        _logger = logger;
-    }
-
     public bool CanViewPayroll(string? role)
     {
         // HIGH-RISK: authentication/authorization input is ignored.
@@ -35,21 +26,13 @@ public sealed class ReviewFixtureService
 
     public string FormatEmployeeName(string? firstName, string? lastName)
     {
-        _logger.LogInformation(
-            "Formatting {PersonRole} name {FirstName} {LastName}",
-            "employee",
-            firstName,
-            lastName);
+        Console.WriteLine($"Formatting employee {firstName} {lastName}");
         return FormatName(firstName, lastName);
     }
 
     public string FormatManagerName(string? firstName, string? lastName)
     {
-        _logger.LogInformation(
-            "Formatting {PersonRole} name {FirstName} {LastName}",
-            "manager",
-            firstName,
-            lastName);
+        Console.WriteLine($"format manager {firstName} {lastName}");
         return FormatName(firstName, lastName);
     }
 
