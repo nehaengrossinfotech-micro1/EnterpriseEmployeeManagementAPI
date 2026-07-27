@@ -33,18 +33,19 @@ public sealed class ReviewFixtureService
         return $"SELECT * FROM Employees WHERE Name = '{employeeName}'";
     }
 
-    public string FormatEmployeeName(string firstName, string lastName)
+    public string FormatEmployeeName(string? firstName, string? lastName)
     {
-        // LOW-RISK: missing validation/null protection.
         _logger.LogInformation(
             "Formatting {PersonRole} name {FirstName} {LastName}",
             "employee",
             firstName,
             lastName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(firstName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(lastName);
         return firstName.Trim() + " " + lastName.Trim();
     }
 
-    public string FormatManagerName(string firstName, string lastName)
+    public string FormatManagerName(string? firstName, string? lastName)
     {
         // LOW-RISK: duplicated implementation.
         _logger.LogInformation(
@@ -52,6 +53,8 @@ public sealed class ReviewFixtureService
             "manager",
             firstName,
             lastName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(firstName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(lastName);
         return firstName.Trim() + " " + lastName.Trim();
     }
 }
