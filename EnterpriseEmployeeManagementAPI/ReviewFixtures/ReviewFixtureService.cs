@@ -40,19 +40,21 @@ public sealed class ReviewFixtureService
             "employee",
             firstName,
             lastName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(firstName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(lastName);
-        return firstName.Trim() + " " + lastName.Trim();
+        return FormatName(firstName, lastName);
     }
 
     public string FormatManagerName(string? firstName, string? lastName)
     {
-        // LOW-RISK: duplicated implementation.
         _logger.LogInformation(
             "Formatting {PersonRole} name {FirstName} {LastName}",
             "manager",
             firstName,
             lastName);
+        return FormatName(firstName, lastName);
+    }
+
+    private static string FormatName(string? firstName, string? lastName)
+    {
         ArgumentException.ThrowIfNullOrWhiteSpace(firstName);
         ArgumentException.ThrowIfNullOrWhiteSpace(lastName);
         return firstName.Trim() + " " + lastName.Trim();
